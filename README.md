@@ -3,6 +3,8 @@ A PyTorch prototype for Difference-of-Convex Privacy Funnel
 
 Accepted for ISIT 2024 Learn to compress workshop
 
+[Paper link](https://arxiv.org/abs/2403.04778)
+
 ## Overview
 The source code implements a differnce-of-convex solver for the privacy funnel
 The algorithm is implemented with a neural network. It is a supervised learning algorithm.
