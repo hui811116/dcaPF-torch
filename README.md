@@ -1,7 +1,9 @@
 # dcaPF-torch
 A PyTorch prototype for Difference-of-Convex Privacy Funnel
 
-Submitted to ISIT 2024 Learn to compress workshop
+Accepted for ISIT 2024 Learn to compress workshop
+
+[Paper link](https://arxiv.org/abs/2403.04778)
 
 ## Overview
 The source code implements a differnce-of-convex solver for the privacy funnel
