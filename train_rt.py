@@ -92,10 +92,6 @@ def train_alt(epoch):
         ent_xcz = bce(xr,x_data)/batch_size
         #ent_xcz = mse(xr,x_data)/batch_size
         loss_list.append(dca_beta * ent_xcz)
-        # kl divergence as regularization
-        qzcx_std = (0.5*logvar).exp()
-        pzcx = model.m_pzcx(*[mu,qzcx_std])
-        save_pzcx = model.m_pzcx(*[mu.detach().clone(),qzcx_std.detach().clone()])
         pz = model.pz() # prior learning # Reuse this
         # cross entropy
         y_hard = F.one_hot(y_label,num_classes).float().to(device)
@@ -108,7 +104,6 @@ def train_alt(epoch):
         tot_loss += loss.item()
         # now update the encoder based on the fitted result
         # second pass
-        #opt_cp.zero_grad()
         optimizer.zero_grad()
         model.zero_grad()
         model.unfreeze()
@@ -127,7 +122,6 @@ def train_alt(epoch):
         # privacy funnel update
         diff_pz_kld = loss_obj.kl_divergence(cp_pz,pz,K=1).sum(1).mean()
         # reguarlization
-        #rz = tdist.Normal(torch.zeros((1,args.latent_dim),device=device).float(),torch.ones((1,args.latent_dim),device=device).float())
         reg_kld = loss_obj.kl_divergence(new_pzcx,rz,K=1).sum(1).mean()
         #eq_loss = (mi_ycz + diff_pz_kld + dca_beta* cp_bce).abs() + dca_alpha * reg_kld # NOTE: 1-norm version
         eq_loss = 0.5*(mi_ycz + diff_pz_kld + dca_beta* cp_rec).square() + dca_alpha * reg_kld
@@ -170,7 +164,6 @@ def test(epoch):
         # mutual information estimation
         y_hard = F.one_hot(y_label,num_classes).float().to(device)
         ce_loss = ce(qycz,y_hard)
-        #est_mizy += (np.log(num_classes) - ce_loss).item()
         est_mizy += (np.log(num_classes) + (qycz*qycz.log()).sum(1).mean()).item()
         pz = model.pz()
         pzcx = model.m_pzcx(*[mu,(0.5*logvar).exp()])

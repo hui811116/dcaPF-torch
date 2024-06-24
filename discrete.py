@@ -157,7 +157,7 @@ def innerSolver(log_pxcy,log_pzcx,c_zcy,**kwargs):
 		est_log_pzcy = logsumexp(expand_log_pxcy+expand_log_pzcx,axis=1,keepdims=True) # (nz,nx,ny)
 		sign_grad = np.sign(est_log_pzcy - c_zcy) # (nz,nx,ny)
 		softmax_pzcy = softmax(expand_log_pxcy+expand_log_pzcx,axis=1) # (nz,nx,ny)
-		return np.sum(sign_grad * softmax_pzcy,axis=1) - reg_alpha
+		return np.sum(sign_grad * softmax_pzcy,axis=2) - reg_alpha
 	if reg_mode == 2:
 		loss_calc = _compute_loss
 		grad_calc = _grad_q2
