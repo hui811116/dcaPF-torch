@@ -27,7 +27,7 @@ def ridgePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 	kernel_mat = pycx.T @ np.linalg.inv(pycx@pycx.T)
 	blk_pxcy = block_diag(*([pxcy.T]*nz))
 	
-	cur_loss = (beta) * ut.calcMI(pzcx@pxy) + ut.calcMI(pzcx*px[None,:])
+	cur_loss = (beta) * ut.calcMI(pzcx@pxy) - ut.calcMI(pzcx*px[None,:])
 	while itcnt < maxiter:
 		itcnt +=1
 		est_pz = np.sum(pzcx*px[None,:],axis=1)
@@ -48,7 +48,7 @@ def ridgePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 		# smoothing
 		raw_pzcx = np.clip(raw_pzcx,a_min=1e-8,a_max=1-1e-8)
 		new_pzcx = raw_pzcx / np.sum(raw_pzcx,axis=0,keepdims=True)
-		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) + ut.calcMI(new_pzcx*px[None,:])
+		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) - ut.calcMI(new_pzcx*px[None,:])
 		#print("[LOG] NIT{:} cur_loss:{:.6f}, new_loss{:.6f}".format(itcnt, cur_loss,new_loss))
 		if np.fabs(cur_loss - new_loss)< convthres:
 			conv_flag = True
@@ -82,7 +82,7 @@ def elasticNetPF(pxy,nz,beta,convthres,maxiter,**kwargs):
 	kernel_mat = pycx.T @ np.linalg.inv(pycx@pycx.T)
 	blk_pxcy = block_diag(*([pxcy.T]*nz))
 	
-	cur_loss = (beta) * ut.calcMI(pzcx@pxy) + ut.calcMI(pzcx*px[None,:])
+	cur_loss = (beta) * ut.calcMI(pzcx@pxy) - ut.calcMI(pzcx*px[None,:])
 	while itcnt < maxiter:
 		itcnt +=1
 		est_pz = np.sum(pzcx*px[None,:],axis=1)
@@ -103,7 +103,7 @@ def elasticNetPF(pxy,nz,beta,convthres,maxiter,**kwargs):
 		# smoothing
 		raw_pzcx = np.clip(raw_pzcx,a_min=1e-8,a_max=1-1e-8)
 		new_pzcx = raw_pzcx / np.sum(raw_pzcx,axis=0,keepdims=True)
-		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) + ut.calcMI(new_pzcx*px[None,:])
+		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) - ut.calcMI(new_pzcx*px[None,:])
 		#print("[LOG] NIT{:} cur_loss:{:.6f}, new_loss{:.6f}".format(itcnt, cur_loss,new_loss))
 		if np.fabs(cur_loss - new_loss)< convthres:
 			conv_flag = True
@@ -219,7 +219,7 @@ def sparsePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 	#blk_pxcy = block_diag(*([pxcy.T]*nz))
 	log_pxcy = np.log(pxcy)
 	inner_dict= {"alpha":alpha_val,"ss":5e-3,"maxiter":10000,"convthres":1e-5} # FIXME: connect the arguments
-	cur_loss = (beta) * ut.calcMI(pzcx@pxy) + ut.calcMI(pzcx*px[None,:])
+	cur_loss = (beta) * ut.calcMI(pzcx@pxy) - ut.calcMI(pzcx*px[None,:])
 	while itcnt < maxiter:
 		itcnt +=1
 		est_pz = np.sum(pzcx*px[None,:],axis=1)
@@ -242,7 +242,7 @@ def sparsePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 		# smoothing
 		raw_pzcx = np.clip(raw_pzcx,a_min=1e-8,a_max=1-1e-8)
 		new_pzcx = raw_pzcx / np.sum(raw_pzcx,axis=0,keepdims=True)
-		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) + ut.calcMI(new_pzcx*px[None,:])
+		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) - ut.calcMI(new_pzcx*px[None,:])
 		#print("[LOG] NIT{:} cur_loss:{:.6f}, new_loss{:.6f}".format(itcnt, cur_loss,new_loss))
 		if np.fabs(cur_loss - new_loss)< convthres:
 			conv_flag = True
