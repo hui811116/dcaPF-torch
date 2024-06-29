@@ -118,6 +118,7 @@ def train_alt(epoch):
         # leakage --> decoding H(Y|Z)
         new_ce = ce(cp_qycz,y_hard)
         mi_ycz = np.log(num_classes) - new_ce
+        #mi_ycz = np.log(num_classes) + (cp_qycz*cp_qycz.clip(min=1e-4).log()).sum(1).mean()
         
         # privacy funnel update
         diff_pz_kld = loss_obj.kl_divergence(cp_pz,pz,K=1).sum(1).mean()

@@ -5,7 +5,8 @@ from sklearn.linear_model import Ridge, ElasticNet
 from scipy.linalg import block_diag
 from scipy.special import softmax,logsumexp
 import utils as ut
-
+import cvxpy as cvx
+"""
 def ridgePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 	#record_flag = kwargs['record']
 	record_flag = kwargs.get("record",False)
@@ -45,6 +46,66 @@ def ridgePF(pxy,nz,beta,convthres,maxiter,**kwargs):
 		
 		raw_pzcx_long = solver_ridge.coef_
 		raw_pzcx = np.reshape(raw_pzcx_long,(nz,nx))
+		# smoothing
+		raw_pzcx = np.clip(raw_pzcx,a_min=1e-8,a_max=1-1e-8)
+		new_pzcx = raw_pzcx / np.sum(raw_pzcx,axis=0,keepdims=True)
+		new_loss = (beta) * ut.calcMI(new_pzcx @ pxy) - ut.calcMI(new_pzcx*px[None,:])
+		#print("[LOG] NIT{:} cur_loss:{:.6f}, new_loss{:.6f}".format(itcnt, cur_loss,new_loss))
+		if np.fabs(cur_loss - new_loss)< convthres:
+			conv_flag = True
+			break
+		else:
+			pzcx = new_pzcx
+			cur_loss = new_loss
+	pzcy = pzcx @ pxcy
+	mizx = ut.calcMI(pzcx * px[None,:])
+	mizy = ut.calcMI(pzcx@pxy)
+	output_dict = {"niter":itcnt,"conv":conv_flag,"IZX":mizx,'IZY':mizy,"pzcx":pzcx}
+	if record_flag:
+		output_dict['record'] = record_mat
+	return output_dict
+"""
+def ridgePF(pxy,nz,beta,convthres,maxiter,**kwargs):
+	#record_flag = kwargs['record']
+	record_flag = kwargs.get("record",False)
+	alpha_val = kwargs['alpha']
+	(nx,ny) = pxy.shape
+	(px,py,pxcy,pycx) = ut.priorInfo(pxy)
+	if 'load' in kwargs.keys():
+		pzcx = kwargs['load']
+	else:
+		seed = kwargs.get('seed',None)
+		pzcx = ut.initPzcx(0,1e-5,nz,nx,seed) # random init
+		#pzcx = ut.initPzcx(1,1e-5,nz,nx,seed) # deterministic init
+	itcnt =0
+	record_mat = np.zeros((1,))
+	if record_flag:
+		record_mat = np.zeros((maxiter,))
+	conv_flag = False
+	# mat kernel
+	kernel_mat = pycx.T @ np.linalg.inv(pycx@pycx.T)
+	#blk_pxcy = block_diag(*([pxcy.T]*nz))
+	
+	cur_loss = (beta) * ut.calcMI(pzcx@pxy) - ut.calcMI(pzcx*px[None,:])
+	while itcnt < maxiter:
+		itcnt +=1
+		est_pz = np.sum(pzcx*px[None,:],axis=1)
+		record_mat[itcnt%record_mat.shape[0]] = cur_loss
+		# compute the Czx
+		Czx = np.log(est_pz)[:,None] + (1/beta) * np.log(pzcx/est_pz[:,None])
+		# stability
+		tmp_val = Czx @ kernel_mat 
+		raw_pzcy = softmax(tmp_val-np.amax(tmp_val,axis=1,keepdims=True),axis=0)
+		raw_pzcy = np.clip(raw_pzcy,a_min=1e-8,a_max=1-1e-8)
+		raw_pzcy = raw_pzcy / np.sum(raw_pzcy,axis=0,keepdims=True)
+		#long_pzcy = raw_pzcy.flatten()
+		#solver_ridge = Ridge(alpha=alpha_val,positive=True,max_iter=10000,fit_intercept=False)
+		#solver_ridge.fit(blk_pxcy,long_pzcy)
+		
+		#raw_pzcx_long = solver_ridge.coef_
+		#raw_pzcx = np.reshape(raw_pzcx_long,(nz,nx))
+		raw_pzcx = innerCvx(pxcy,raw_pzcy,alpha_val)
+		# TODO:sanity check
 		# smoothing
 		raw_pzcx = np.clip(raw_pzcx,a_min=1e-8,a_max=1-1e-8)
 		new_pzcx = raw_pzcx / np.sum(raw_pzcx,axis=0,keepdims=True)
@@ -119,6 +180,29 @@ def elasticNetPF(pxy,nz,beta,convthres,maxiter,**kwargs):
 		output_dict['record'] = record_mat
 	return output_dict
 
+def innerCvx(pxcy,c_zcy,alpha):
+	# 
+	# approximated loss: |A*p_zcx - c_zcy|^2 + \alpha |p_zcx|^2
+	# A, block diagonal...?
+	# long pzcx
+	# equality # (simplex constraint)
+	# K * p_zcx = 1n
+	# 
+	nz = c_zcy.shape[0]
+	nx = pxcy.shape[0]
+	ny = pxcy.shape[1]
+	qzcx = cvx.Variable(shape=(nz,nx))
+	constraint = [np.ones((1,nz)) @ qzcx == np.ones((1,nx)),
+			   	  qzcx <= 1.0]
+	obj_1 = cvx.sum_squares(qzcx@pxcy - c_zcy)
+	obj_2 = cvx.sum_squares(qzcx)
+	pbl = cvx.Problem(cvx.Minimize(obj_1 + alpha * obj_2),constraint)
+	pbl.solve()
+	#print("opt val:{:}".format(pbl.value))
+	#print("opt pzcx:")
+	#print(qzcx.value)
+	#sys.exit()
+	return qzcx.value
 
 def innerSolver(log_pxcy,log_pzcx,c_zcy,**kwargs):
 	# compute A_{x|y} p_{z|x} = C_{z|x}

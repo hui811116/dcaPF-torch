@@ -18,6 +18,7 @@ The algorithm is implemented with a neural network. It is a supervised learning 
 - scikit-learn == 1.0.2
 - scipy == 1.7.3
 - matplotlib == 3.5.3
+- cvxpy == 1.5.2
 
 ## Create a Conda Environment
 ```

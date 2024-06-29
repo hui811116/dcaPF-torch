@@ -11,7 +11,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('method',choices=['ridge','sparse'],help="selecting the regularization")
-parser.add_argument('--dataset',choices=['syn','heartfail'],help="select a discrete dataset")
+parser.add_argument('--dataset',choices=['syn','heartfail'],default="syn",help="select a discrete dataset")
 parser.add_argument('--beta_min',type=float,default=0.01,help="minimum beta for dca")
 parser.add_argument('--beta_max',type=float,default=10.0,help="maximum beta for dca")
 parser.add_argument('--beta_num',type=int,default=20,help="number of point for dca beta")
