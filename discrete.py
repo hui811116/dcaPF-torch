@@ -193,7 +193,7 @@ def innerCvx(pxcy,c_zcy,alpha):
 	ny = pxcy.shape[1]
 	qzcx = cvx.Variable(shape=(nz,nx))
 	constraint = [np.ones((1,nz)) @ qzcx == np.ones((1,nx)),
-			   	  qzcx <= 1.0]
+			   	  qzcx >= 0.0]
 	obj_1 = cvx.sum_squares(qzcx@pxcy - c_zcy)
 	obj_2 = cvx.sum_squares(qzcx)
 	pbl = cvx.Problem(cvx.Minimize(obj_1 + alpha * obj_2),constraint)
