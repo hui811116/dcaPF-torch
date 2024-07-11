@@ -5,6 +5,17 @@ Accepted for ISIT 2024 Learn to compress workshop
 
 [Paper link](https://arxiv.org/abs/2403.04778)
 
+## Citation
+Cite the work if you find it useful
+```
+@article{huang2024efficient,
+  title={An efficient difference-of-convex solver for privacy funnel},
+  author={Huang, Teng-Hui and Gamal, Hesham El},
+  journal={arXiv preprint arXiv:2403.04778},
+  year={2024}
+}
+```
+
 ## Overview
 The source code implements a differnce-of-convex solver for the privacy funnel
 The algorithm is implemented with a neural network. It is a supervised learning algorithm.
