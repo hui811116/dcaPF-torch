@@ -202,7 +202,7 @@ def innerCvx(pxcy,c_zcy,alpha):
 	#print("opt pzcx:")
 	#print(qzcx.value)
 	#sys.exit()
-	return qzcx.value
+	return np.fabs(qzcx.value)
 
 def innerSolver(log_pxcy,log_pzcx,c_zcy,**kwargs):
 	# compute A_{x|y} p_{z|x} = C_{z|x}
